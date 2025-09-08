@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <limits.h>
+#define MAX 10
+struct Process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int waiting_time;
+    int turnaround_time;
+};
+int findShortestJob(struct Process processes[], int n, int current_time, int completed[]) {
+    int min_burst = INT_MAX;
+    int index = -1;
+    int i;
+    for ( i = 0; i < n; i++) {
+        if (processes[i].arrival_time <= current_time && completed[i] == 0 && processes[i].burst_time < min_burst) {
+            min_burst = processes[i].burst_time;
+            index = i;
+        }
+    }
+    return index;
+}
+
+
+void sjfScheduling(struct Process processes[], int n) {
+    int current_time = 0;
+    int completed[MAX] = {0};
+    int completed_count = 0;
+
+    printf("ProcessID | Arrival Time | Burst Time | Waiting Time | Turnaround Time\n");
+
+
+    while (completed_count < n) {
+
+        int idx = findShortestJob(processes, n, current_time, completed);
+
+        if (idx == -1) {
+
+            current_time++;
+        } else {
+
+            struct Process *p = &processes[idx];
+            p->waiting_time = current_time - p->arrival_time;
+            p->turnaround_time = p->waiting_time + p->burst_time;
+            current_time += p->burst_time;
+            completed[idx] = 1;
+            completed_count++;
+
+
+            printf("   %d      |      %d      |     %d     |      %d      |       %d\n",
+                    p->pid, p->arrival_time, p->burst_time, p->waiting_time, p->turnaround_time);
+        }
+    }
+
+
+    printf("\nGantt Chart: ");
+    current_time = 0;
+    int i;
+    for ( i = 0; i < n; i++) {
+        if (completed[i] == 1) {
+            printf("| P%d (%d -> %d) ", processes[i].pid, current_time, current_time + processes[i].burst_time);
+            current_time += processes[i].burst_time;
+        }
+    }
+    printf("|\n");
+}
+
+int main() {
+    int n;
+
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process processes[MAX];
+
+
+    int i;
+    for (i = 0; i < n; i++) {
+        printf("\nEnter details for Process %d\n", i + 1);
+        processes[i].pid = i + 1;
+        printf("Arrival Time: ");
+        scanf("%d", &processes[i].arrival_time);
+        printf("Burst Time: ");
+        scanf("%d", &processes[i].burst_time);
+    }
+
+
+    sjfScheduling(processes, n);
+
+    return 0;
+}
